@@ -61,7 +61,22 @@ mongoose
     useUnifiedTopology: true,
     useNewUrlParser: true,
   })
-  .then(() => {
+  .then(async () => {
+    // Drop the problematic unique index on notifications.notification_id
+    try {
+      const usersCollection = mongoose.connection.collection('users');
+      const indexes = await usersCollection.getIndexes();
+      for (const [indexName, indexSpec] of Object.entries(indexes)) {
+        if (indexName.includes('notifications.notification_id')) {
+          console.log(`Dropping problematic index: ${indexName}`);
+          await usersCollection.dropIndex(indexName);
+          console.log(`Index ${indexName} dropped successfully`);
+        }
+      }
+    } catch (err) {
+      console.log("Index cleanup info:", err.message);
+    }
+
     const PORT = process.env.PORT || 5000;
     try {
       fastify.listen(

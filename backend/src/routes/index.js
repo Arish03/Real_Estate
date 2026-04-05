@@ -14,10 +14,12 @@ export const setFastifyRoutes = function (fastify) {
     console.log("GET Request at base '/'");
     res.send(true);
   });
-  fastify.register(usersRoutes, { prefix: "/users" });
-  fastify.register(authRoutes, { prefix: "/auth" });
-  fastify.register(propertiesRoutes, { prefix: "/properties" });
-  fastify.register(enquiriesRoutes, { prefix: "/enquiries" });
-  fastify.register(activitiesRoutes, { prefix: "/activities"});
-  fastify.register(notificationsRoutes, { prefix: "/notifications"});
+  fastify.register(async (fastify) => {
+    fastify.register(usersRoutes, { prefix: "/users" });
+    fastify.register(authRoutes, { prefix: "/auth" });
+    fastify.register(propertiesRoutes, { prefix: "/properties" });
+    fastify.register(enquiriesRoutes, { prefix: "/enquiries" });
+    fastify.register(activitiesRoutes, { prefix: "/activities"});
+    fastify.register(notificationsRoutes, { prefix: "/notifications"});
+  }, { prefix: "/api" });
 };

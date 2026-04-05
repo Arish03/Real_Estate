@@ -10,6 +10,7 @@ import { Contact } from "./pages/Contact";
 import { Dashboard } from "./pages/Dashboard";
 import { AddProperty } from "./pages/AddProperty";
 import { Messages } from "./pages/Messages";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -31,12 +32,15 @@ function App() {
               path="/properties"
               element={<Properties onAuthClick={() => setShowAuthModal(true)} />}
             />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/add-property" element={<AddProperty />} />
-            <Route path="/messages" element={<Messages />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
-            
+
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/add-property" element={<AddProperty />} />
+              <Route path="/messages" element={<Messages />} />
+            </Route>
           </Routes>
 
           {/* Auth Modal (Signup/Login UI) */}
@@ -51,3 +55,4 @@ function App() {
 }
 
 export default App;
+ 

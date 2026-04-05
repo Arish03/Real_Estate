@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Home, Bed, Bath, Square, Image as ImageIcon, X, Upload } from 'lucide-react';
+import { useAuth } from '../context/AuthContextProvider';
+import { Image as ImageIcon, X, Upload } from 'lucide-react';
 import { PropertyMapSelector } from '../components/PropertyMapSelector';
 import API_BASE_URL from '../config/api'; // Make sure this exports your backend URL
 
@@ -24,6 +24,7 @@ export const AddProperty: React.FC = () => {
     bathrooms: '',
     sqft: '',
     type: 'apartment',
+    transactionType: 'sale',
   });
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,6 +61,18 @@ export const AddProperty: React.FC = () => {
       return;
     }
 
+    // Validate required fields
+    if (!formData.title || !formData.address || !formData.type || !formData.transactionType) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+
+    // Validate description
+    if (!formData.description || formData.description.trim().length < 10) {
+      alert('Description must be at least 10 characters long.');
+      return;
+    }
+
     try {
       setSubmitted(true);
 
@@ -69,6 +82,7 @@ export const AddProperty: React.FC = () => {
       const data = new FormData();
       data.append('title', formData.title);
       data.append('type', formData.type);
+      data.append('transactionType', formData.transactionType);
       data.append('description', formData.description);
       data.append('price', formData.price);
       data.append('squareFeet', formData.sqft);
@@ -85,7 +99,7 @@ export const AddProperty: React.FC = () => {
         data.append('images', file);
       });
 
-      const res = await fetch(`${API_BASE_URL}/properties/add`, {
+      const res = await fetch(`${API_BASE_URL}/properties`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -105,7 +119,7 @@ export const AddProperty: React.FC = () => {
     }
   };
 
-  if (!user || user.role !== 'owner') {
+  if (!user || user?.role !== "owner") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl shadow-md p-8 text-center max-w-md">
@@ -160,13 +174,26 @@ export const AddProperty: React.FC = () => {
                 <option value="villa">Villa Stay</option>
                 <option value="office">Office</option>
                 <option value="Rental">Rental</option>
-                
-
               </select>
             </div>
 
             <div>
-              <label className="block text-gray-700 font-semibold mb-2">Description</label>
+              <label className="block text-gray-700 font-semibold mb-2">Transaction Type</label>
+              <select
+                value={formData.transactionType}
+                onChange={(e) => setFormData({ ...formData, transactionType: e.target.value })}
+                className="w-full border border-gray-300 rounded-lg p-3"
+                required
+              >
+                <option value="sale">For Sale</option>
+                <option value="rent">For Rent</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-gray-700 font-semibold mb-2">
+                Description <span className="text-sm text-gray-500">(minimum 10 characters)</span>
+              </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -175,6 +202,9 @@ export const AddProperty: React.FC = () => {
                 rows={4}
                 required
               />
+              <p className={`text-sm mt-1 ${formData.description.length < 10 ? 'text-red-600' : 'text-green-600'}`}>
+                {formData.description.length}/10 characters
+              </p>
             </div>
 
             {/* Property Details */}
@@ -263,7 +293,7 @@ export const AddProperty: React.FC = () => {
 
             {/* Image Upload */}
             <div>
-              <label className="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
+              <label className="flex text-gray-700 font-semibold mb-2 items-center gap-2">
                 <ImageIcon className="h-5 w-5 text-blue-600" /> Property Images
               </label>
               <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
@@ -329,6 +359,7 @@ export const AddProperty: React.FC = () => {
               <div className="h-full">
                 <PropertyMapSelector
                   onLocationSelect={(lat, lng) => setMapPosition({ lat, lng })}
+                  onViewDetails={() => {}} // Not used in add property mode
                   initialPosition={mapPosition || undefined}
                 />
               </div>

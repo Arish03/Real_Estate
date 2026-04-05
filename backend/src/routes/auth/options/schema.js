@@ -5,6 +5,7 @@ export const authProperties = {
     email: { type: "string" },
     fullName: { type: "string" },
     accessToken: { type: "string" },
+    role: { type: "string", enum: ["owner", "buyer"] },
     about: { type: "string" },
     address: { type: "string" },
     verified: { type: "boolean" }

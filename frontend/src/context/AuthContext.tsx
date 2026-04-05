@@ -1,16 +1,6 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
-import API_URL from "../config/api"; // ✅ keep as string
-
-interface AuthContextType {
-  user: any;
-  token: string | null; // expose token
-  isAuthenticated: boolean;
-  signup: (name: string, email: string, password: string, role: "owner" | "buyer") => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-}
-
-const AuthContext = createContext<AuthContextType | null>(null);
+import { useState, ReactNode, useEffect } from "react";
+import API_URL from "../config/api"; // ✅ TypeScript declaration
+import { AuthContext } from "./AuthContextProvider";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any>(() => {
@@ -30,24 +20,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signup = async (name: string, email: string, password: string, role: "owner" | "buyer") => {
+  const signup = async (name: string, email: string, password: string, role: "owner" | "buyer" = "buyer") => {
     try {
+      console.log("\n🔷 FRONTEND SIGNUP:", { name, email, selectedRole: role });
       const res = await fetch(`${API_URL}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({ fullName: name, email, password, role }),
       });
       const data = await parseJSON(res);
+      console.log("🔷 SIGNUP RESPONSE RECEIVED:", { role: data.role, email: data.email });
       if (!res.ok) throw new Error(data.message || "Signup failed");
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      const userObj = { user_id: data.user_id, email: data.email, fullName: data.fullName, role: data.role || "buyer" };
+      console.log("🔷 STORING IN LOCALSTORAGE AFTER SIGNUP:", userObj);
+      localStorage.setItem("token", data.accessToken);
+      localStorage.setItem("user", JSON.stringify(userObj));
 
-      setUser(data.user);
-      setToken(data.token);
+      setUser(userObj);
+      setToken(data.accessToken);
       setIsAuthenticated(true);
 
-      alert("Signup successful!");
+      alert(`Signup successful! Role: ${userObj.role}`);
     } catch (error: any) {
       console.error("Signup error:", error);
       alert(error.message || "Server error during signup");
@@ -56,22 +50,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log("\n🟢 FRONTEND LOGIN:", { email });
       const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
       const data = await parseJSON(res);
+      console.log("🟢 LOGIN RESPONSE RECEIVED:", { role: data.data.role, email: data.data.email });
       if (!res.ok) throw new Error(data.message || "Login failed");
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      const userData = { ...data.data, role: data.data.role || "buyer" };
+      console.log("🟢 RETRIEVED FROM RESPONSE:", userData);
+      console.log("🟢 STORING IN LOCALSTORAGE AFTER LOGIN:", userData);
+      localStorage.setItem("token", userData.accessToken);
+      localStorage.setItem("user", JSON.stringify(userData));
 
-      setUser(data.user);
-      setToken(data.token);
+      setUser(userData);
+      setToken(userData.accessToken);
       setIsAuthenticated(true);
 
-      alert("Login successful!");
+      alert(`Login successful! Role: ${userData.role}`);
     } catch (error: any) {
       console.error("Login error:", error);
       alert(error.message || "Server error during login");
@@ -89,9 +88,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
     const savedUser = localStorage.getItem("user");
+    console.log("\n⏰ APP STARTUP - LOADING FROM LOCALSTORAGE:", { savedToken: !!savedToken, savedUserRaw: savedUser ? JSON.parse(savedUser) : null });
     if (savedToken && savedUser) {
+      const user = JSON.parse(savedUser);
+      console.log("⏰ SETTING USER FROM STORAGE:", { role: user.role, email: user.email });
+      // Fix: If role is missing or wrong, it will be corrected on next login
       setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+      setUser(user);
       setIsAuthenticated(true);
     }
   }, []);
@@ -101,10 +104,4 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used inside AuthProvider");
-  return context;
 };

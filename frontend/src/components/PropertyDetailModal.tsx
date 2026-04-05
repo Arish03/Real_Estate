@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, MapPin, Bed, Bath, Square, Mail, Calendar } from 'lucide-react';
 import { Property } from '../types';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContextProvider';
 import { sendMessage } from '../services/messageService';
 
 interface PropertyDetailModalProps {

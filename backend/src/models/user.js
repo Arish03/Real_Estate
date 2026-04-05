@@ -47,6 +47,11 @@ const userSchema = new mongoose.Schema(
     },
     verified: {
       type: Boolean
+    },
+    role: {
+      type: String,
+      enum: ['owner', 'buyer'],
+      default: 'buyer'
     }
   },
   {

@@ -11,25 +11,36 @@ import { isPasswordValid } from "../../utils/users.js";
  * @returns {Promise<import('fastify').FastifyReply<Response>>} A promise that resolves to the Fastify response object.
  */
 export const register = async function (req, res) {
-  const { fullName, email, password } = req.body;
+  const { fullName, email, password, role } = req.body;
+  console.log("\n🔵🔵🔵 SIGNUP REQUEST:", { fullName, email, receivedRole: role, roleType: typeof role });
+  
   if (fullName && email && password) {
     if(!isPasswordValid(password)) {
       return res.status(400).send({ message: "Error: password is not valid" })
     }
     try {
       const hashedPassword = await fastify.bcrypt.hash(password);
+      const finalRole = role === 'owner' ? 'owner' : 'buyer';
+      console.log("🔵 SETTING ROLE:", { inputRole: role, shouldBeOwner: role === 'owner', finalRole });
+      
       const newUser = new User({
         user_id: uuidv4(),
         fullName,
         email: email.toLowerCase(),
         password: hashedPassword,
+        role: finalRole,
       });
-      const { user_id } = await newUser.save();
+      
+      const savedUser = await newUser.save();
+      console.log("🟢 USER SAVED TO DB:", { user_id: savedUser.user_id, savedRole: savedUser.role, roleType: typeof savedUser.role });
+      
       const accessToken = fastify.jwt.sign({ id: newUser.user_id });
-      return res
-        .status(201)
-        .send({ user_id, email: email.toLowerCase(), fullName, accessToken });
+      const responseBody = { user_id: savedUser.user_id, email: email.toLowerCase(), fullName, role: savedUser.role, accessToken };
+      console.log("🟢 SIGNUP RESPONSE BODY:", responseBody);
+      
+      return res.status(201).send(responseBody);
     } catch (error) {
+      console.error("🔴 SIGNUP ERROR:", error);
       return res.send(error);
     }
   }

@@ -1,13 +1,20 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import { fileURLToPath } from "url";
+import path from "path";
+import fs from "fs";
 // Import Models
 import { User } from "../../src/models/user.js";
 import { Property } from "../../src/models/property.js";
 import { Enquiry } from "../../src/models/enquiry.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Import JSON data
-import users from "./data/users.json" assert { type: "json" };
-import properties from "./data/properties.json" assert { type: "json" };
-import enquiries from "./data/enquiries.json" assert { type: "json" };
+const users = JSON.parse(fs.readFileSync(path.join(__dirname, "data/users.json"), "utf-8"));
+const properties = JSON.parse(fs.readFileSync(path.join(__dirname, "data/properties.json"), "utf-8"));
+const enquiries = JSON.parse(fs.readFileSync(path.join(__dirname, "data/enquiries.json"), "utf-8"));
 
 dotenv.config();
 

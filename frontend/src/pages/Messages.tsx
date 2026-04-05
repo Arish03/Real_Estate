@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContextProvider';
 import { Mail, Clock, CheckCircle } from 'lucide-react';
 import { Enquiry } from '../types';
 import axios from 'axios';

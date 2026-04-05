@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { sendMessage } from '../services/messageService';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContextProvider';
 
 interface ContactProps {
   propertyId?: string;

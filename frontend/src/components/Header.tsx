@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Home, Menu, X, User, LogOut, Plus, Mail, LayoutDashboard } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContextProvider';
 import { Link, useLocation } from 'react-router-dom';
 
 interface HeaderProps {
@@ -113,15 +113,15 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
                   className="flex items-center space-x-2 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors"
                 >
                   <User className="h-5 w-5 text-blue-600" />
-                  <span className="text-sm font-medium text-gray-700 hidden sm:inline">{user.name}</span>
+                  <span className="text-sm font-medium text-gray-700 hidden sm:inline">{user.fullName}</span>
                 </button>
 
                 {isProfileOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border border-gray-100">
                     <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                      <p className="text-sm font-medium text-gray-900">{user.fullName}</p>
                       <p className="text-xs text-gray-500">{user.email}</p>
-                      <p className="text-xs text-blue-600 mt-1 capitalize">{user.role}</p>
+                      <p className="text-xs text-blue-600 mt-1 capitalize">{user.role || "buyer"}</p>
                     </div>
                     {user.role === 'owner' && (
                       <>
